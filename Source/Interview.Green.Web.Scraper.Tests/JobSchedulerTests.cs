@@ -19,7 +19,7 @@ namespace Interview.Green.Web.Scrapper.Tests
         [TestMethod]
         public void ScheduleJob_ConfirmCompletion()
         {
-            var result = _jobSchedulerService.ScheduleScrapeJob("http://www.google.com");
+            var result = _jobSchedulerService.ScheduleScrapeJob("http://www.google.com", string.Empty);
 
             //sleep for 30 seconds
             Thread.Sleep(30000);
