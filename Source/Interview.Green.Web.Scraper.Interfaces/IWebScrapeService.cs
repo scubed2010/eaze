@@ -7,5 +7,6 @@ namespace Interview.Green.Web.Scraper.Interfaces
         string GetUrlContent(string url);
         void StoreScrapeContent(string content, string requestedOn, Guid jobRequestId);
         string RetrieveScrapeContent(Guid jobRequestId);
+        string GetFirstElementText(string element, string content);
     }
 }

@@ -21,9 +21,20 @@ namespace Interview.Green.Web.Scrapper.Service
         {
             var jobUrl = context.JobDetail.JobDataMap.First(t => t.Key == "url").Value.ToString();
             var jobRequestedOn = context.JobDetail.JobDataMap.First(t => t.Key == "requestedOn").Value.ToString();
-
+            var requestedElement = context.JobDetail.JobDataMap.First(t => t.Key == "requestedElement").Value.ToString();
+            
             var content = _webScrapeService.GetUrlContent(jobUrl);
-            _webScrapeService.StoreScrapeContent(content, jobRequestedOn, new Guid(context.JobDetail.Key.Name));
+
+            if (!string.IsNullOrEmpty(content))
+            {
+                //get only requested element if specified
+                if (!string.IsNullOrEmpty(requestedElement))
+                {
+                    content = _webScrapeService.GetFirstElementText(requestedElement, content);
+                }
+
+                _webScrapeService.StoreScrapeContent(content, jobRequestedOn, new Guid(context.JobDetail.Key.Name));
+            }
         }
     }
 }

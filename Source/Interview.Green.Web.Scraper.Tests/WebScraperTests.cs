@@ -22,5 +22,14 @@ namespace Interview.Green.Web.Scrapper.Tests
 
             Assert.IsFalse(string.IsNullOrEmpty(result));
         }
+
+        [TestMethod]
+        public void GetElementText_HasCorrectContent()
+        {
+            var content = "<header>some text</header><h1>Heading</h1><footer>some text</footer>";
+            var result = _webScrapeService.GetFirstElementText("h1", content);
+
+            Assert.IsTrue(result == "Heading");
+        }
     }
 }

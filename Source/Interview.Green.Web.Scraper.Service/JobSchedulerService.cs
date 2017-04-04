@@ -3,31 +3,37 @@ using Interview.Green.Web.Scraper.Interfaces;
 using Quartz;
 using Quartz.Impl;
 using Interview.Green.Web.Scrapper.Service;
+using System.Configuration;
 
 namespace Interview.Green.Web.Scraper.Service
 {
     public class JobSchedulerService : IJobSchedulerService
     {
-        public Guid ScheduleScrapeJob(string url)
+        ISchedulerFactory _schedFact;
+
+        public JobSchedulerService()
+        {
+            _schedFact = new StdSchedulerFactory();
+
+        }
+        public Guid ScheduleScrapeJob(string url, string requestedElement)
         {
             var guid = Guid.NewGuid();
-            
-            ISchedulerFactory schedFact = new StdSchedulerFactory();
-            
-            IScheduler sched = schedFact.GetScheduler();
+
+            IScheduler sched = _schedFact.GetScheduler();
             sched.Start();
-            
+
             IJobDetail job = JobBuilder.Create<WebScrapeJob>()
                 .WithIdentity(guid.ToString(), "g")
                 .UsingJobData("url", url)
                 .UsingJobData("requestedOn", DateTime.Now.ToLongDateString())
+                .UsingJobData("requestedElement", requestedElement)
                 .Build();
             
             ITrigger trigger = TriggerBuilder.Create()
-              .WithIdentity("t", "g")
-              .StartNow()
-              .WithSimpleSchedule(x => x
-                  .WithIntervalInSeconds(40))
+              .WithIdentity($"trigger{guid.ToString()}", "g")
+              .StartAt(DateBuilder.FutureDate(Convert.ToInt32(ConfigurationManager.AppSettings["ScheduleDelay"]), IntervalUnit.Second))
+              .ForJob(job.Key)
               .Build();
 
             sched.ScheduleJob(job, trigger);
@@ -37,9 +43,7 @@ namespace Interview.Green.Web.Scraper.Service
 
         public bool IsJobCompete(Guid guid)
         {
-            ISchedulerFactory schedFact = new StdSchedulerFactory();
-            
-            IScheduler sched = schedFact.GetScheduler();
+            IScheduler sched = _schedFact.GetScheduler();
 
             var executingJobs = sched.GetCurrentlyExecutingJobs();
             foreach (var job in executingJobs)

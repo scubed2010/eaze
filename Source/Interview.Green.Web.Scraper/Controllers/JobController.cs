@@ -1,6 +1,7 @@
 ﻿using Interview.Green.Web.Scraper.Interfaces;
 using Interview.Green.Web.Scraper.Models;
 using Interview.Green.Web.Scraper.Service;
+using Interview.Green.Web.Scrapper.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -19,26 +20,26 @@ namespace Interview.Green.Web.Scraper.Controllers
             _webScrapeService = new WebScrapeService();
         }
 
-        [HttpGet]
-        public async Task<IHttpActionResult> ScrapeUrl(string url)
+        [HttpPost]
+        public async Task<IHttpActionResult> ScrapeUrl(JobRequest request)
         {
-            var result = _jobSchedulerService.ScheduleScrapeJob(url);
+            var result = await Task.Run(() => _jobSchedulerService.ScheduleScrapeJob(request.Url, request.RequestedElement));
 
             return Ok(result);
         }
 
         [HttpGet]
-        public async Task<IHttpActionResult> ScrapeUrlStatus(Guid guid)
+        public async Task<IHttpActionResult> ScrapeUrlStatus(Guid requestId)
         {
-            var isComplete = _jobSchedulerService.IsJobCompete(guid);
+            var isComplete = await Task.Run(() => _jobSchedulerService.IsJobCompete(requestId));
+            var content = _webScrapeService.RetrieveScrapeContent(requestId);
 
-            if (isComplete)
+            if (isComplete && !string.IsNullOrEmpty(content))
             {
-                var content = _webScrapeService.RetrieveScrapeContent(guid);
                 return Ok(content);
             }
             
-            return Ok("Is not yet complete!");
+            return Ok("Processing...");
         }
     }
 }

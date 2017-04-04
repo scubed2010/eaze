@@ -23,15 +23,30 @@ namespace Interview.Green.Web.Scraper.Service
         }
         public string GetUrlContent(string url)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.Method = "GET";
-            using (var response = request.GetResponse())
-            using (var stream = response.GetResponseStream())
-            using (var reader = new StreamReader(stream))
+            try
             {
-                HttpStatusCode statusCode = ((HttpWebResponse)response).StatusCode;
-                return reader.ReadToEnd();
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.Method = "GET";
+                using (var response = request.GetResponse())
+                using (var stream = response.GetResponseStream())
+                using (var reader = new StreamReader(stream))
+                {
+                    HttpStatusCode statusCode = ((HttpWebResponse)response).StatusCode;
+                    return reader.ReadToEnd();
+                }
             }
+            catch (Exception e)
+            {
+                //log error
+                return string.Empty;
+            }
+        }
+
+        public string GetFirstElementText(string element, string content)
+        {
+            var elementText = content.Split(new string[] { $"<{element}>" }, StringSplitOptions.RemoveEmptyEntries)[1];
+            elementText = elementText.Split(new string[] { $"</{element}>" }, StringSplitOptions.RemoveEmptyEntries)[0];
+            return elementText;
         }
 
         public void StoreScrapeContent(string content, string requestedOn, Guid jobRequestId)
@@ -57,17 +72,24 @@ namespace Interview.Green.Web.Scraper.Service
 
         public string RetrieveScrapeContent(Guid jobRequestId)
         {
-            GetObjectRequest request = new GetObjectRequest
+            try
             {
-                BucketName = ConfigurationManager.AppSettings["S3Bucket"],
-                Key = $"{jobRequestId.ToString()}.json"
-            };
+                GetObjectRequest request = new GetObjectRequest
+                {
+                    BucketName = ConfigurationManager.AppSettings["S3Bucket"],
+                    Key = $"{jobRequestId.ToString()}.json"
+                };
 
-            GetObjectResponse response = _AWSClient.GetObject(request);
+                GetObjectResponse response = _AWSClient.GetObject(request);
 
-            StreamReader reader = new StreamReader(response.ResponseStream);
+                StreamReader reader = new StreamReader(response.ResponseStream);
 
-            return reader.ReadToEnd();
+                return reader.ReadToEnd();
+            }
+            catch (Exception e)
+            {
+                return string.Empty;
+            }
         }
     }
 }
