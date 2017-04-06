@@ -17,6 +17,7 @@ namespace Interview.Green.Web.Scraper.Controllers
             _jobSchedulerService = new JobSchedulerService();
             _webScrapeService = new WebScrapeService();
         }
+
         /// <summary>
         /// Schedule url and optional selected first element for scraping
         /// </summary>
